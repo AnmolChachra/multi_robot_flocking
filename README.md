@@ -21,5 +21,5 @@ roslaunch multi_robot_flocking stageros.launch
 ```
 
 ## Note
-By default N in multi_robot_flocking/src/multi_robot_flocking is set to 3. When running for stageros, set this value to 10
+By default N in multi_robot_flocking/src/multi_robot_flocking is set to 3. When running for stageros, set this value to 10. Also, set cohesion coeffecient 'C' to 0.2 and separation coeffecient 'S' to 4 to simulate the correct behavior
   
