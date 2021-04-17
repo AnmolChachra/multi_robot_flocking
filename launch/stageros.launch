@@ -13,43 +13,43 @@
   <node name="stage_ros" pkg="stage_ros" type="stageros" args="/root/catkin_ws/src/stage_ros/world/empty_world.world" />
 
   <group ns = "$(arg first_tb3)">
-    <node name="multi_robot_flockingg" pkg="multi_robot_flockingg" type="multi_robot_flockingg"/>
+    <node name="multi_robot_flocking" pkg="multi_robot_flocking" type="multi_robot_flocking"/>
   </group>
 
   <group ns = "$(arg second_tb3)">
-    <node name="multi_robot_flockingg" pkg="multi_robot_flockingg" type="multi_robot_flockingg"/>
+    <node name="multi_robot_flocking" pkg="multi_robot_flocking" type="multi_robot_flocking"/>
   </group>
 
   <group ns = "$(arg third_tb3)">
-    <node name="multi_robot_flockingg" pkg="multi_robot_flockingg" type="multi_robot_flockingg"/>
+    <node name="multi_robot_flocking" pkg="multi_robot_flocking" type="multi_robot_flocking"/>
   </group>
 
   <group ns = "$(arg four_tb3)">
-    <node name="multi_robot_flockingg" pkg="multi_robot_flockingg" type="multi_robot_flockingg"/>
+    <node name="multi_robot_flocking" pkg="multi_robot_flocking" type="multi_robot_flocking"/>
   </group>
 
   <group ns = "$(arg five_tb3)">
-    <node name="multi_robot_flockingg" pkg="multi_robot_flockingg" type="multi_robot_flockingg"/>
+    <node name="multi_robot_flocking" pkg="multi_robot_flocking" type="multi_robot_flocking"/>
   </group>
 
   <group ns = "$(arg six_tb3)">
-    <node name="multi_robot_flockingg" pkg="multi_robot_flockingg" type="multi_robot_flockingg"/>
+    <node name="multi_robot_flocking" pkg="multi_robot_flocking" type="multi_robot_flocking"/>
   </group>
 
   <group ns = "$(arg seven_tb3)">
-    <node name="multi_robot_flockingg" pkg="multi_robot_flockingg" type="multi_robot_flockingg"/>
+    <node name="multi_robot_flocking" pkg="multi_robot_flocking" type="multi_robot_flocking"/>
   </group>
 
   <group ns = "$(arg eight_tb3)">
-    <node name="multi_robot_flockingg" pkg="multi_robot_flockingg" type="multi_robot_flockingg"/>
+    <node name="multi_robot_flocking" pkg="multi_robot_flocking" type="multi_robot_flocking"/>
   </group>
 
   <group ns = "$(arg nine_tb3)">
-    <node name="multi_robot_flockingg" pkg="multi_robot_flockingg" type="multi_robot_flockingg"/>
+    <node name="multi_robot_flocking" pkg="multi_robot_flocking" type="multi_robot_flocking"/>
   </group>
 
   <group ns = "$(arg ten_tb3)">
-    <node name="multi_robot_flockingg" pkg="multi_robot_flockingg" type="multi_robot_flockingg"/>
+    <node name="multi_robot_flocking" pkg="multi_robot_flocking" type="multi_robot_flocking"/>
   </group>
 
 </launch>
