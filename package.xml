@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!-- Full information here http://wiki.ros.org/catkin/package.xml -->
+<package format="2">
+  <name>multi_robot_flockingg</name>
+  <version>0.1.0</version>
+  <description>
+    ROS package for simulating a flocking behaviour in a swarm of robots.
+  </description>
+  <maintainer email="anmol.chachra@gmail.com">Sanket Joshi</maintainer>
+  <license>MIT</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>rospy</depend>
+  <depend>geometry_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>urdf</depend>
+  <depend>xacro</depend>
+</package>
