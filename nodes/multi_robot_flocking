@@ -1,1 +1,177 @@
 #!/usr/bin/env python
+
+from __future__ import print_function
+
+import tf
+import math
+import rospy
+import logging
+
+from geometry_msgs.msg import Twist
+from nav_msgs.msg import Odometry
+from sensor_msgs.msg import LaserScan
+
+# publisher subscriber constants
+DEFAULT_CMD_VEL_TOPIC = 'cmd_vel'  # To publish navigation commands
+DEFAULT_SCAN_TOPIC = '/robot_#/scan' # To subscribe to laser
+DEFAULT_POSE_TOPIC = '/robot_#/base_pose_ground_truth' # To subscribe to true value of robot location
+
+# robot constants
+FREQUENCY = 10  # Used in publisher and subscriber
+LINEAR_VELOCITY = 0.8 # m/s
+ANGULAR_VELOCITY = math.pi / 2.0  # rad/s
+
+# laser constants
+LASER_ANGLE_FRONT = 0 # radians
+MIN_THRESHOLD_DISTANCE = 0.5 # m, threshold distance.
+
+# behavior constants
+C = 1 # coeffecient of cohesion
+S = 1 # coeffecient of separation
+N = 3 # number of robots
+
+class MultiRobotFlocker:
+    """
+    Class implements flocking behavior through local behaviors for multiple robots
+    """
+
+    def __init__(self, linear_velocity=LINEAR_VELOCITY, angular_velocity=ANGULAR_VELOCITY, c=C, s=S,  n=N):
+        """
+        Constructor
+        """
+        self.linear_velocity = linear_velocity
+        self.angular_velocity = angular_velocity
+
+        self.c = c
+        self.s = s
+        self.n = n
+
+        
+        # Publish to Twist
+        self.cmd_pub = rospy.Publisher(DEFAULT_CMD_VEL_TOPIC, Twist, queue_size=1)
+
+        # subscribe to laser scan
+        for i in range(self.n):
+            rospy.Subscriber(DEFAULT_SCAN_TOPIC.replace("#", str(i)), LaserScan, self._laser_callback, queue_size=1)
+
+        # subscribe to odometer
+        for i in range(self.n):
+            rospy.Subscriber(DEFAULT_POSE_TOPIC.replace("#", str(i)), Odometry, self._pose_callback, queue_size=1)
+
+        # Other variables
+        self.robot_name = str(rospy.get_namespace())
+        self.poses = {}
+        self.pose = (0.0, 0.0, 0.0)
+        self._close_obstacle = False
+
+    def _laser_callback(self, msg):
+        """
+        Processing of laser message
+        """
+        i = int((LASER_ANGLE_FRONT - msg.angle_min) / msg.angle_increment)
+        
+        if msg.ranges[i] <= MIN_THRESHOLD_DISTANCE:
+            self._close_obstacle = True
+        else:
+            self._close_obstacle = False
+
+    def _pose_callback(self, msg):
+        """
+        Find pose for each robot and store it
+        """
+        topic_id = msg._connection_header["topic"]
+
+
+        # The value received from the msg.pose.pose.orientation is in quaternion
+        quaternion = (msg.pose.pose.orientation.x, msg.pose.pose.orientation.y, msg.pose.pose.orientation.z, msg.pose.pose.orientation.w)
+
+        # Transform the quartenion value to radians - Yaw is received from index 2
+        pose = (msg.pose.pose.position.x, msg.pose.pose.position.y, tf.transformations.euler_from_quaternion(quaternion)[2])
+
+        # Store the pose for this instance of robot
+        if self.robot_name in topic_id: self.pose = pose
+
+        # Update the dictionary that stores poses for all the robots
+        self.poses[topic_id] = pose
+
+
+    def stop(self):
+        """ Stop the robot """
+        twist_msg = Twist()
+        self.cmd_pub.publish(twist_msg)
+
+
+    def flock(self):
+        """
+        Use neighborhood of this robot to steer it towards the centroid.
+        Once target x and y are calculated, use separation based on inverse distance to steer away in opposite direction
+        Finally align it using the average slope of all the neighborhoods
+        """
+        # Rate at which to operate the while loop
+        rate = rospy.Rate(FREQUENCY)
+
+        # Setting Velocities
+        twist_msg = Twist()
+        twist_msg.linear.x = self.linear_velocity
+        twist_msg.angular.z = self.angular_velocity
+
+        while not rospy.is_shutdown():
+            cx, cy, cY = self.pose # actual x, y and Yaw
+
+            tx, ty, tY = 0, 0, 0 # target x, y and Yaw
+
+            # cohesion
+            for k, (x, y, Y) in self.poses.items():
+                if self.robot_name not in k:
+                    tx += (x - cx)
+                    ty += (y - cy)
+
+            tx = cx + self.c * tx
+            ty = cy + self.c * ty
+           
+
+            # separation
+
+            def weight(d):
+                return -1/d**2
+
+            for k, (x, y, Y) in self.poses.items():
+                if self.robot_name not in k:
+                    dist = max(math.sqrt((x - cx)**2 + (y - cy)**2), 0.0001) # avoid div by zero
+                   
+                    w = weight(dist)
+                    
+                    tx += w * (x - cx)
+                    ty += w * (y - cy)
+
+            tx = cx + self.s * tx
+            ty = cy + self.s * ty
+
+            # alignment
+
+            def normalize(a):
+                return (a + math.pi) % (2 * math.pi) - math.pi
+
+            alignment_angle = normalize(math.atan2(ty - cy, tx - cx) - cY)
+
+            # publish twist
+            twist_msg.angular.z = alignment_angle
+            self.cmd_pub.publish(twist_msg)
+
+            # sleep
+            rate.sleep()
+
+        self.stop()
+
+def main():
+    rospy.init_node("multi_robot_flocking")
+    rospy.sleep(2)
+    multi_robot_flocker = MultiRobotFlocker()
+    rospy.on_shutdown(multi_robot_flocker.stop)
+    try:
+        multi_robot_flocker.flock()
+    except rospy.ROSInterruptException:
+        rospy.logerr("ROS node interrupted")
+
+if __name__ == "__main__":
+    main()
